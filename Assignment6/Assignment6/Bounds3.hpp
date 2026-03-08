@@ -97,6 +97,20 @@ inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
     // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
     // TODO test if ray bound intersects
     
+
+    //compute tmin in x, y, z and tmax in x, y, z
+    Vector3f pSpatialStorage[] = {pMin, pMax};
+    auto xSol1 = (pSpatialStorage[1 - dirIsNeg[0]].x - ray.origin.x) * invDir.x;
+    auto xSol2 = (pSpatialStorage[dirIsNeg[0]].x - ray.origin.x) * invDir.x;
+    auto ySol1 = (pSpatialStorage[1 - dirIsNeg[1]].y - ray.origin.y) * invDir.y;
+    auto ySol2 = (pSpatialStorage[dirIsNeg[1]].y - ray.origin.y) * invDir.y;
+    auto zSol1 = (pSpatialStorage[1 - dirIsNeg[2]].z - ray.origin.z) * invDir.z;
+    auto zSol2 = (pSpatialStorage[dirIsNeg[2]].z - ray.origin.z) * invDir.z;
+
+    bool x = (xSol1 < xSol2) && (xSol2 > 0);
+    bool y = (ySol1 < ySol2) && (ySol2 > 0);
+    bool z = (zSol1 < zSol2) && (zSol2 > 0);
+    return x && y && z;
 }
 
 inline Bounds3 Union(const Bounds3& b1, const Bounds3& b2)
