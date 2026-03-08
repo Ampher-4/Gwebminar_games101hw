@@ -212,28 +212,57 @@ inline Intersection Triangle::getIntersection(Ray ray)
 {
     Intersection inter;
 
-    if (dotProduct(ray.direction, normal) > 0)
-        return inter;
-    double u, v, t_tmp = 0;
-    Vector3f pvec = crossProduct(ray.direction, e2);
-    double det = dotProduct(e1, pvec);
-    if (fabs(det) < EPSILON)
-        return inter;
-
-    double det_inv = 1. / det;
-    Vector3f tvec = ray.origin - v0;
-    u = dotProduct(tvec, pvec) * det_inv;
-    if (u < 0 || u > 1)
-        return inter;
-    Vector3f qvec = crossProduct(tvec, e1);
-    v = dotProduct(ray.direction, qvec) * det_inv;
-    if (v < 0 || u + v > 1)
-        return inter;
-    t_tmp = dotProduct(e2, qvec) * det_inv;
+//    if (dotProduct(ray.direction, normal) > 0)
+//        return inter;
+//    double u, v, t_tmp = 0;
+//    Vector3f pvec = crossProduct(ray.direction, e2);
+//    double det = dotProduct(e1, pvec);
+//    if (fabs(det) < EPSILON)
+//        return inter;
+//
+//    double det_inv = 1. / det;
+//    Vector3f tvec = ray.origin - v0;
+//    u = dotProduct(tvec, pvec) * det_inv;
+//    if (u < 0 || u > 1)
+//        return inter;
+//    Vector3f qvec = crossProduct(tvec, e1);
+//    v = dotProduct(ray.direction, qvec) * det_inv;
+//    if (v < 0 || u + v > 1)
+//        return inter;
+//    t_tmp = dotProduct(e2, qvec) * det_inv;
 
     // TODO find ray triangle intersection
 
 
+	auto planeNormal = normalize(crossProduct(v1 - v0, v2 - v0));
+
+    //idea: first compute the intersection point between the plane and the ray, 
+    //then check if the point is inside the triangle
+    Vector3f solution{0};
+
+
+    Vector3f E1 = v1 - v0; Vector3f E2 = v2 - v0; Vector3f S = ray.origin - v0;
+    Vector3f S1 = crossProduct(ray.direction, E2); Vector3f S2 = crossProduct(S, E1);
+    float denominator = dotProduct(S1, E1);
+
+
+    solution = (1 / denominator ) * Vector3f{
+        dotProduct(S2, E2),
+        dotProduct(S1, S),
+        dotProduct(S2, ray.direction)
+        };
+
+    //apply the value
+	float u = solution.y; float  v = solution.z;
+    if ((denominator != 0) && (u >= 0) && (v >= 0) && (u + v <= 1) && (solution.x >= 0)) {
+		inter.coords = ray.origin + ray.direction * solution.x;
+		inter.normal = planeNormal;
+        inter.happened = true;
+		inter.obj = this;
+        inter.m = this->m;
+		inter.distance = solution.x; 
+    }else
+		inter.happened = false;
 
 
     return inter;
