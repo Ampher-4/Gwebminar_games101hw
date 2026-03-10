@@ -105,10 +105,31 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
     return isect;
 }
 
+/*
+    compute intersection with BVH nodes and ray. If node is not leaf, then recursively calls on childs.
+    If node is leaf, then call object->getIntersection with ray as params, return the intersection information.
+    If hit, modified intersection infomation: coords, normal, distance, obj, m
+*/
 Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
 {
     // TODO Traverse the BVH to find intersection
+    if (! node->bounds.IntersectP(
+        ray, 
+        ray.direction_inv, 
+        {int(ray.direction.x > 0), int(ray.direction.y > 0), int(ray.direction.z > 0)})
+    ) {
+        return Intersection();
+    }
 
+    if (node->object) {
+        return node->object->getIntersection(ray);
+    }
+    if (node->left && node->right) {
+        auto leftIsect = BVHAccel::getIntersection(node->left, ray);
+        auto rightIsect = BVHAccel::getIntersection(node->right, ray);
+        return leftIsect.distance < rightIsect.distance ? leftIsect : rightIsect;
+    }
+    return Intersection();
 }
 
 
