@@ -6,15 +6,24 @@
 #include "global.hpp"
 #include <chrono>
 
+int polluteSPP = 8;
+int polluteDepth = 1;
+
 // In the main function of the program, we create the scene (create objects and
 // lights) as well as set the options for the render (image width and height,
 // maximum recursion depth, field-of-view, etc.). We then call the render
 // function().
 int main(int argc, char** argv)
 {
+    if(argc == 3){
+        extern int polluteSPP, polluteDepth;
+        polluteSPP = std::atoi(argv[1]);
+        polluteDepth = std::atoi(argv[2]);
+    }
 
     // Change the definition here to change resolution
     Scene scene(784, 784);
+    scene.maxDepth = polluteDepth;
 
     Material* red = new Material(DIFFUSE, Vector3f(0.0f));
     red->Kd = Vector3f(0.63f, 0.065f, 0.05f);

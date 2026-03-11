@@ -6,6 +6,7 @@
 #undef M_PI
 #define M_PI 3.141592653589793f
 
+
 extern const float  EPSILON;
 const float kInfinity = std::numeric_limits<float>::max();
 
@@ -30,9 +31,9 @@ inline  bool solveQuadratic(const float &a, const float &b, const float &c, floa
 
 inline float get_random_float()
 {
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::uniform_real_distribution<float> dist(0.f, 1.f); // distribution in range [1, 6]
+    static std::random_device dev;
+    static thread_local std::mt19937 rng(dev());
+    static std::uniform_real_distribution<float> dist(0.f, 1.f); // distribution in range [1, 6]
 
     return dist(rng);
 }
