@@ -11,7 +11,7 @@
 
 inline float deg2rad(const float& deg) { return deg * M_PI / 180.0; }
 
-const float EPSILON = 0.00001;
+const float EPSILON = 0.001;
 
 //void castRayMultiWrapped(const Scene &scene,const Ray &ray, std::vector<Vector3f> &caches, int w, int h, int spp){
 //    for(int k = 0; k < spp; k++){
@@ -49,8 +49,8 @@ void Renderer::Render(const Scene& scene)
                 Vector3f color(0,0,0);
                 for (int k = 0; k < spp; k++) {
                     // 生成射线逻辑...
-                    float x = (2 * (i + 0.5) / (float)scene.width - 1) * imageAspectRatio * scale;
-                    float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale;
+                    float x = (2 * (i + 0.5) / (float)scene.width - 1) * imageAspectRatio * scale; //165
+                    float y = (1 - 2 * (j + 0.5) / (float)scene.height) * scale; //699
                     Vector3f dir = normalize(Vector3f(-x, y, 1));
                     color += scene.castRay(Ray(eye_pos, dir), 0) / spp;
                 }

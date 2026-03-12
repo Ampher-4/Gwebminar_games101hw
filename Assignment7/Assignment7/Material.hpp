@@ -7,7 +7,7 @@
 
 #include "Vector.hpp"
 
-enum MaterialType { DIFFUSE};
+enum MaterialType { DIFFUSE, MICROFACET, REFLECTION, REFRACTION };
 
 class Material{
 private:
@@ -87,7 +87,8 @@ private:
 
 public:
     MaterialType m_type;
-    //Vector3f m_color;
+    Vector3f m_color;
+    float roughness;
     Vector3f m_emission;
     float ior;
     Vector3f Kd, Ks;
@@ -174,6 +175,11 @@ Vector3f Material::eval(const Vector3f &wi, const Vector3f &wo, const Vector3f &
                 return Vector3f(0.0f);
             break;
         }
+        case MICROFACET:
+        {
+            // calculate the contribution of microfacet model
+            break;
+		}
     }
 }
 
