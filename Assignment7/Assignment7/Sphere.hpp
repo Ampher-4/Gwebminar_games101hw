@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by LEI XU on 5/13/19.
 //
 
@@ -55,16 +55,51 @@ public:
         float c = dotProduct(L, L) - radius2;
         float t0, t1;
         if (!solveQuadratic(a, b, c, t0, t1)) return result;
-        if (t0 < 0) t0 = t1;
-        if (t0 < 0) return result;
+        float t_hit = -1;
+		if (t0 > EPSILON) { // 使用一个稍微大一点的阈值防止自相交
+			t_hit = t0;
+		} else if (t1 > EPSILON) {
+			t_hit = t1;
+		} else {
+			return result; // 两个交点都在光线起点后面或离起点太近
+		}
         result.happened=true;
 
-        result.coords = Vector3f(ray.origin + ray.direction * t0);
-        result.normal = normalize(Vector3f(result.coords - center));
+        result.coords = Vector3f(ray.origin + ray.direction * (t_hit));
+
+        // 改进：法线方向
+		// 默认法线是从球心指向交点
+		Vector3f outward_normal = normalize(result.coords - center);
+		
+		// 关键：确保法线始终面向光线射来的方向 (Face-forwarding)
+		// 这样当光线从球体内部射出时，渲染才不会出错
+		result.normal = (dotProduct(ray.direction, outward_normal) < 0) ? outward_normal : -outward_normal;
+
         result.m = this->m;
         result.obj = this;
-        result.distance = t0;
+        result.distance = t_hit;
         return result;
+//        Intersection result;
+//        result.happened = false;
+//        Vector3f L = ray.origin - center;
+//        float a = dotProduct(ray.direction, ray.direction);
+//        float b = 2 * dotProduct(ray.direction, L);
+//        float c = dotProduct(L, L) - radius2;
+//        float t0, t1;
+//        if (!solveQuadratic(a, b, c, t0, t1)) return result;
+//        if (t0 < 0) t0 = t1;
+//        if (t0 < 0) return result;
+//        if (t0 > 0.5)
+//        {
+//            result.happened = true;
+//            result.coords = Vector3f(ray.origin + ray.direction * t0);
+//            result.normal = normalize(Vector3f(result.coords - center));
+//            result.m = this->m;
+//            result.obj = this;
+//            result.distance = t0;
+//        }
+//
+//        return result;
 
     }
     void getSurfaceProperties(const Vector3f &P, const Vector3f &I, const uint32_t &index, const Vector2f &uv, Vector3f &N, Vector2f &st) const
@@ -72,6 +107,7 @@ public:
 
     Vector3f evalDiffuseColor(const Vector2f &st)const {
         //return m->getColor();
+        return m->Kd;
     }
     Bounds3 getBounds(){
         return Bounds3(Vector3f(center.x-radius, center.y-radius, center.z-radius),

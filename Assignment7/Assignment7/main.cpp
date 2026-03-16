@@ -36,16 +36,26 @@ int main(int argc, char** argv)
     Material* light = new Material(DIFFUSE, (8.0f * Vector3f(0.747f+0.058f, 0.747f+0.258f, 0.747f) + 15.6f * Vector3f(0.740f+0.287f,0.740f+0.160f,0.740f) + 18.4f *Vector3f(0.737f+0.642f,0.737f+0.159f,0.737f)));
     light->Kd = Vector3f(0.65f);
 
-    MeshTriangle floor("./models/cornellbox/floor.obj", white);
-    MeshTriangle shortbox("./models/cornellbox/shortbox.obj", white);
-    MeshTriangle tallbox("./models/cornellbox/tallbox.obj", white);
+    Material* blackrubber = new Material(DIFFUSE, Vector3f{ 0.0f }, Vector3f{ 0.05f }, 0.9, 0.03);
+    Material* puremirror = new Material(DIFFUSE, Vector3f{ 0.0f }, Vector3f{ 0.7f }, 0.001, 2.5);
+    Material* oak = new Material(DIFFUSE, Vector3f{ 0.0f }, Vector3f(0.6, 0.35, 0.15), 0.6, 0.04);
+    Material* matteplastic = new Material(DIFFUSE, Vector3f{ 0.0f }, Vector3f(0.5f), 0.9, 0.03);
+	Material* fakesilver = new Material(DIFFUSE, Vector3f{ 0.0f }, Vector3f(0.5f), 0.25, 0.1);
+    
+
+    MeshTriangle floor("./models/cornellbox/floor.obj", blackrubber);
+//    MeshTriangle shortbox("./models/cornellbox/shortbox.obj", blackrubber);
+//    MeshTriangle tallbox("./models/cornellbox/tallbox.obj", puremirror);
     MeshTriangle left("./models/cornellbox/left.obj", red);
     MeshTriangle right("./models/cornellbox/right.obj", green);
     MeshTriangle light_("./models/cornellbox/light.obj", light);
+	//278, 273, -800
+	Sphere* testingsph = new Sphere(Vector3f(150, 100, 225), 100, puremirror);
 
     scene.Add(&floor);
-    scene.Add(&shortbox);
-    scene.Add(&tallbox);
+ //   scene.Add(&shortbox);
+ //   scene.Add(&tallbox);
+    scene.Add(testingsph);
     scene.Add(&left);
     scene.Add(&right);
     scene.Add(&light_);

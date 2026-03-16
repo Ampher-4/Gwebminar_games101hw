@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by LEI XU on 5/16/19.
 //
 
@@ -40,7 +40,7 @@ private:
         return k < 0 ? 0 : eta * I + (eta * cosi - sqrtf(k)) * n;
     }
 
-    // Compute Fresnel equation
+    // Compute Fresnel equation (for non-metal)
     //
     // \param I is the incident view direction
     //
@@ -95,6 +95,7 @@ public:
     float specularExponent;
     //Texture tex;
 
+    inline Material(MaterialType t, Vector3f e, Vector3f kd, float roughness, float ior);
     inline Material(MaterialType t=DIFFUSE, Vector3f e=Vector3f(0,0,0));
     inline MaterialType getType();
     //inline Vector3f getColor();
@@ -110,6 +111,15 @@ public:
     inline Vector3f eval(const Vector3f &wi, const Vector3f &wo, const Vector3f &N);
 
 };
+
+Material::Material(MaterialType t, Vector3f e, Vector3f kd, float roughness, float ior){
+    m_type = t;
+    //m_color = c;
+    m_emission = e;
+    this->roughness = roughness;
+    this->ior = ior;
+	this->Kd = kd;
+}
 
 Material::Material(MaterialType t, Vector3f e){
     m_type = t;
@@ -161,26 +171,51 @@ float Material::pdf(const Vector3f &wi, const Vector3f &wo, const Vector3f &N){
 }
 
 //Note: here wo is the direction pointing to the light source, wi is the direction pointing to the camera.
+//we are using cook torrrence model here for diffuse and specular
 Vector3f Material::eval(const Vector3f &wi, const Vector3f &wo, const Vector3f &N){
-    switch(m_type){
-        case DIFFUSE:
-        {
-            // calculate the contribution of diffuse   model
-            float cosalpha = dotProduct(N, wo);
-            if (cosalpha > 0.0f) {
-                Vector3f diffuse = Kd / M_PI;
-                return diffuse;
-            }
-            else
-                return Vector3f(0.0f);
-            break;
-        }
-        case MICROFACET:
-        {
-            // calculate the contribution of microfacet model
-            break;
-		}
+    Vector3f result = { 0.0f };
+	// calculate the contribution of diffuse   model
+	float cosalpha = dotProduct(N, wo);
+    float cosbeta = dotProduct(N, wi);
+    if(cosalpha < 0.0f || cosbeta < 0.0f)
+        return result;
+	if (cosalpha > 0.0f) {
+		Vector3f diffuse = Kd / M_PI;
+		result = diffuse;
+	}
+
+    //calculate the specular
+    if (cosalpha > 0.0f) {
+		Vector3f specular = { 0.0f };
+        Vector3f wh = (wo + wi).normalized();
+        //convert specularExponent to roughness
+//        float ns = this->specularExponent;
+        //note: roughness transform can be replace with other model
+        //float roughness = sqrtf(1/ns)
+ //       float roughness = sqrtf(2.0f / (ns + 2.0f)); 
+        float roughness = this->roughness;
+        roughness = clamp(roughness, 0.0001f, 1.0f);
+        //calculate normal distribution
+        float asqaure = roughness * roughness;
+
+        float dh = asqaure / ( M_PI * powf(powf(dotProduct(N, wh), 2.0f) * (asqaure - 1.0f) + 1.0f, 2.0f));
+
+		//calculate fresnel term
+        float fresnel = 0.0f;
+		this->fresnel(wi, N, this->ior, fresnel);
+
+        //calculate geometry term
+        //using smith schlick GGX
+		float karpaDirect = powf(roughness + 1.0f, 2.0f) / 8.0f; // direct light 这他妈我自己也不知道输入是roughness还是a = roughness^2
+		float incidentGschllickGGX = dotProduct(N, wo) / (dotProduct(N, wo) * (1.0f - karpaDirect) + karpaDirect);
+		float outgoingGschllickGGX = dotProduct(N, wi) / (dotProduct(N, wi) * (1.0f - karpaDirect) + karpaDirect);
+		float geoterm = incidentGschllickGGX * outgoingGschllickGGX;
+
+		float dominator = clamp(4.0f * dotProduct(N, wo) * dotProduct(N, wi), 0.001f, 100000.0f);
+        specular =  dh * fresnel * geoterm / dominator;
+        result += specular;
     }
+	return result;
 }
 
 #endif //RAYTRACING_MATERIAL_H
